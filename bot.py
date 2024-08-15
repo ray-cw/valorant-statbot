@@ -10,7 +10,7 @@ import valo_api as vapi
 import numpy as np
 import pandas as pd
 
-import helper.datacollection
+from helper.datacollection import *
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -24,7 +24,7 @@ client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 @tree.command(name = "add-match", description = "Add match to database.", guild=discord.Object(id=GUILD_ID)) #Add the guild ids in which the slash command will appear. If it should be in all, remove the argument, but note that it will take some time (up to an hour) to register the command if it's for all guilds.
-async def add_match(interaction, match_id: str, team_a: str, team_b: str):
+async def add_match(interaction, match_id: str, team_a: str, team_b: str, week: str):
 
     await interaction.response.send_message(f"Looking up [{match_id}]...")
 
@@ -42,10 +42,10 @@ async def add_match(interaction, match_id: str, team_a: str, team_b: str):
         await interaction.followup.send(f"Valorant API Error: Match not found, terminating operation.")
         return
 
-    clean_match_df(match_response, team_b, team_a)
-    clean_performance_df(match_response, team_b, team_a)
+    clean_match_df(match_response, team_b, team_a, week)
+    clean_performance_df(match_response, team_b, team_a, week)
 
-    await interaction.followup.send(f"Adding match [{match_id}] between {team_a} and {team_b} to database...")
+    await interaction.followup.send(f"Added match [{match_id}] between {team_a} and {team_b} to database.")
 
 @tree.command(name = "delete-match", description = "Remove match from database.", guild=discord.Object(id=GUILD_ID)) #Add the guild ids in which the slash command will appear. If it should be in all, remove the argument, but note that it will take some time (up to an hour) to register the command if it's for all guilds.
 async def delete_match(interaction, match_id: str):
@@ -59,9 +59,9 @@ async def delete_match(interaction, match_id: str):
         await interaction.followup.send(f"Match does not exist in database, termininating operation.")
         return
 
-    ## Open performances database
+    remove_match(match_id)
 
-    await interaction.followup.send(f"Remvoing match [{match_id}] from database...")
+    await interaction.followup.send(f"Removed match [{match_id}] from database.")
 
 
 @client.event
